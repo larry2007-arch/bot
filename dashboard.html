@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bot Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f9f9f9;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-title {
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <h3 class="card-title">Users</h3>
+                    <p id="user-count" class="display-4">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <h3 class="card-title">Messages</h3>
+                    <p id="message-count" class="display-4">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <h3 class="card-title">Notifications</h3>
+                    <p id="notification-count" class="display-4">5</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <h3 class="card-title">Settings</h3>
+                    <button class="btn btn-light mt-2">Manage</button>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="user-activity-chart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const userCount = document.getElementById("user-count");
+            const messageCount = document.getElementById("message-count");
+
+            // Replace with your Railway deployed backend URL:
+            const backendUrl = "https://your-railway-app.up.railway.app";
+
+            try {
+                // Fetch stats
+                const statsResponse = await fetch(`${backendUrl}/api/stats`);
+                const stats = await statsResponse.json();
+                userCount.textContent = stats.users;
+                messageCount.textContent = stats.messages;
+                document.getElementById("notification-count").textContent = stats.notifications;
+
+                // Fetch activity data
+                const activityResponse = await fetch(`${backendUrl}/api/activity`);
+                const activity = await activityResponse.json();
+
+                const ctx = document.getElementById('user-activity-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: activity.labels,
+                        datasets: [{
+                            label: 'Users',
+                            data: activity.data,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading data:", error);
+            }
+        });
+    </script>
+</body>
+</html>
